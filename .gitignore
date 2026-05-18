@@ -1,0 +1,15 @@
+node_modules/
+dist/
+data/
+.env
+.env.production
+waha-sessions/
+.claude/
+.planning/
+markdownvault/
+backups/
+qr.png
+*test_output.txt
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

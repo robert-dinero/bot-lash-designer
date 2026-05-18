@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dashboard — Studio Lash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="auth-overlay" class="auth-overlay" role="dialog" aria-modal="true" aria-label="Autenticação">
+    <div class="auth-box">
+      <h2>Studio Lash Admin</h2>
+      <p>Digite a chave de acesso para continuar.</p>
+      <div class="form-group">
+        <label for="auth-password">Chave de Acesso</label>
+        <input type="password" id="auth-password" placeholder="Digite a chave..." autocomplete="current-password">
+      </div>
+      <div id="auth-error" class="auth-error" role="alert" hidden></div>
+      <button id="auth-login" class="btn btn-primary">Entrar</button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header id="app-header" hidden>
+    <div class="header-left">
+      <span class="header-wordmark">Studio Lash</span>
+    </div>
+    <div class="header-right">
+      <span id="auth-badge" class="auth-badge">Autenticado</span>
+      <button id="clear-customer-data" class="btn btn-danger btn-sm">Limpar dados</button>
+      <button id="logout" class="btn btn-secondary btn-sm">Sair</button>
+    </div>
+  </header>
+
+  <!-- Main App (hidden until authenticated) -->
+  <main id="app-main" hidden>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav" role="tablist" aria-label="Navegação principal">
+      <button class="tab-btn active" data-tab="agenda" role="tab" aria-selected="true" aria-controls="tab-agenda">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Agenda
+      </button>
+      <button class="tab-btn" data-tab="services" role="tab" aria-selected="false" aria-controls="tab-services">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        Servicos
+      </button>
+      <button class="tab-btn" data-tab="hours" role="tab" aria-selected="false" aria-controls="tab-hours">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+        Horarios
+      </button>
+      <button class="tab-btn" data-tab="blocks" role="tab" aria-selected="false" aria-controls="tab-blocks">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Bloqueios
+      </button>
+      <button class="tab-btn" data-tab="escalations" role="tab" aria-selected="false" aria-controls="tab-escalations">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Escalacoes
+      </button>
+      <button class="tab-btn" data-tab="history" role="tab" aria-selected="false" aria-controls="tab-history">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><polyline points="3 16 3 11 8 11"/></svg>
+        Historico
+      </button>
+    </nav>
+
+    <!-- ── Agenda Tab ─────────────────────────────────────────────── -->
+    <section id="tab-agenda" class="tab-content active" data-tab="agenda" role="tabpanel">
+      <div class="section-header">
+        <h2>Agendamentos</h2>
+      </div>
+
+      <div class="day-nav">
+        <button id="agenda-prev" class="btn btn-ghost btn-icon" aria-label="Dia anterior">&#8592;</button>
+        <span id="agenda-day-label" class="day-nav-label"></span>
+        <button id="agenda-next" class="btn btn-ghost btn-icon" aria-label="Próximo dia">&#8594;</button>
+      </div>
+
+      <div class="table-wrapper" id="appointments-wrapper">
+        <table id="appointments-table" class="data-table" aria-label="Agendamentos">
+          <thead>
+            <tr>
+              <th scope="col">Horario</th>
+              <th scope="col">Data</th>
+              <th scope="col">Cliente</th>
+              <th scope="col">Servico</th>
+              <th scope="col">Duracao</th>
+              <th scope="col">Status</th>
+              <th scope="col">Acoes</th>
+            </tr>
+          </thead>
+          <tbody id="appointments-tbody">
+            <tr>
+              <td colspan="7" class="empty-state">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Services Tab ───────────────────────────────────────────── -->
+    <section id="tab-services" class="tab-content" data-tab="services" role="tabpanel" hidden>
+      <div class="section-header">
+        <h2>Servicos</h2>
+        <button id="service-add" class="btn btn-primary" data-action="add-service">+ Adicionar</button>
+      </div>
+
+      <div id="services-cards"></div>
+    </section>
+
+    <!-- ── Working Hours Tab ──────────────────────────────────────── -->
+    <section id="tab-hours" class="tab-content" data-tab="hours" role="tabpanel" hidden>
+      <div class="section-header">
+        <h2>Horarios de Atendimento</h2>
+      </div>
+
+      <div class="hours-subnav">
+        <button class="hours-subbtn active" data-sub="expediente">Expediente</button>
+        <button class="hours-subbtn" data-sub="almoco">Almoco</button>
+      </div>
+
+      <div id="hours-cards"></div>
+    </section>
+
+    <!-- ── Availability Blocks Tab ────────────────────────────────── -->
+    <section id="tab-blocks" class="tab-content" data-tab="blocks" role="tabpanel" hidden>
+      <div class="section-header">
+        <h2>Bloqueios de Disponibilidade</h2>
+        <button id="block-add" class="btn btn-primary" data-action="add-block">+ Criar Bloqueio</button>
+      </div>
+
+      <div id="blocks-wrapper" class="table-wrapper">
+        <table id="blocks-table" class="data-table" aria-label="Bloqueios de disponibilidade">
+          <thead>
+            <tr>
+              <th scope="col">Data</th>
+              <th scope="col">Horario</th>
+              <th scope="col">Motivo</th>
+              <th scope="col">Acoes</th>
+            </tr>
+          </thead>
+          <tbody id="blocks-tbody">
+            <tr>
+              <td colspan="4" class="empty-state">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Escalations Tab ────────────────────────────────────────── -->
+    <section id="tab-escalations" class="tab-content" data-tab="escalations" role="tabpanel" hidden>
+      <div class="section-header">
+        <h2>Escalacoes Pendentes</h2>
+      </div>
+
+      <div id="escalations-wrapper" class="table-wrapper">
+        <table id="escalations-table" class="data-table" aria-label="Escalacoes pendentes">
+          <thead>
+            <tr>
+              <th scope="col">Cliente</th>
+              <th scope="col">Servico</th>
+              <th scope="col">Horario</th>
+              <th scope="col">Motivo</th>
+              <th scope="col">Acoes</th>
+            </tr>
+          </thead>
+          <tbody id="escalations-tbody">
+            <tr>
+              <td colspan="5" class="empty-state">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── History Tab ──────────────────────────────────────────────── -->
+    <section id="tab-history" class="tab-content" data-tab="history" role="tabpanel" hidden>
+      <div class="section-header">
+        <h2>Historico</h2>
+        <div class="history-filters" role="group" aria-label="Filtrar por status">
+          <button class="filter-btn active" data-status="">Todos</button>
+          <button class="filter-btn" data-status="confirmed">Confirmados</button>
+          <button class="filter-btn" data-status="completed">Concluidos</button>
+          <button class="filter-btn" data-status="cancelled">Cancelados</button>
+          <button class="filter-btn" data-status="no_show">Falta</button>
+        </div>
+      </div>
+
+      <div id="history-wrapper" class="table-wrapper">
+        <table id="history-table" class="data-table" aria-label="Historico de agendamentos">
+          <thead>
+            <tr>
+              <th scope="col">Cliente</th>
+              <th scope="col">Servico</th>
+              <th scope="col">Data</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <tr><td colspan="4" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Services Modal ─────────────────────────────────────────────── -->
+  <div id="services-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="services-modal-title" hidden>
+    <div class="modal-backdrop" id="services-modal-backdrop"></div>
+    <div class="modal-content">
+      <h3 id="services-modal-title">Servico</h3>
+      <form id="serviceForm" novalidate>
+        <input type="hidden" id="service-id">
+        <div class="form-group">
+          <label for="service-name">Nome</label>
+          <input type="text" id="service-name" maxlength="100" required placeholder="Ex: Volume Russo">
+          <span class="field-error" id="service-name-error" role="alert" hidden></span>
+        </div>
+        <div class="form-group">
+          <label for="service-duration">Duracao (minutos)</label>
+          <input type="number" id="service-duration" min="15" max="480" required placeholder="30">
+          <span class="field-error" id="service-duration-error" role="alert" hidden></span>
+        </div>
+        <div class="form-group">
+          <label for="service-price">Preco (R$)</label>
+          <input type="number" id="service-price" min="0" step="0.01" required placeholder="40.00">
+          <span class="field-error" id="service-price-error" role="alert" hidden></span>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" id="service-save" class="btn btn-primary">Salvar</button>
+          <button type="button" id="service-cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Availability Block Modal ───────────────────────────────────── -->
+  <div id="blocks-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="blocks-modal-title" hidden>
+    <div class="modal-backdrop" id="blocks-modal-backdrop"></div>
+    <div class="modal-content">
+      <h3 id="blocks-modal-title">Criar Bloqueio</h3>
+      <form id="blockForm" novalidate>
+        <div class="form-group">
+          <label for="block-reason">Motivo</label>
+          <input type="text" id="block-reason" maxlength="200" placeholder="Ex: Almoco, Folga">
+          <span class="field-error" id="block-reason-error" role="alert" hidden></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="block-start-date">Data de Inicio</label>
+            <input type="date" id="block-start-date" required>
+          </div>
+          <div class="form-group">
+            <label for="block-start-time">Hora de Inicio</label>
+            <input type="time" id="block-start-time" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="block-end-date">Data de Fim</label>
+            <input type="date" id="block-end-date" required>
+          </div>
+          <div class="form-group">
+            <label for="block-end-time">Hora de Fim</label>
+            <input type="time" id="block-end-time" required>
+          </div>
+        </div>
+        <span class="field-error" id="block-dates-error" role="alert" hidden></span>
+        <div class="modal-actions">
+          <button type="submit" id="block-create" class="btn btn-primary">Criar</button>
+          <button type="button" id="block-cancel" class="btn btn-secondary">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Confirmation Modal ─────────────────────────────────────────── -->
+  <div id="confirm-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" hidden>
+    <div class="modal-backdrop" id="confirm-modal-backdrop"></div>
+    <div class="modal-content confirm-modal-content">
+      <h3 id="confirm-modal-title">Confirmar</h3>
+      <p id="confirm-modal-message"></p>
+      <div class="modal-actions">
+        <button id="confirm-ok" class="btn btn-danger">Confirmar</button>
+        <button id="confirm-cancel" class="btn btn-secondary">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast Container ────────────────────────────────────────────── -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

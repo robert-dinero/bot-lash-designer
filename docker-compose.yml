@@ -1,0 +1,23 @@
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha-lash
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3011:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      WHATSAPP_DEFAULT_ENGINE: WEBJS
+      WHATSAPP_HOOK_URL: ${WAHA_WEBHOOK_URL:-http://host.docker.internal:3003/webhook/waha}
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      WAHA_API_KEY_PLAIN: ${WAHA_API_KEY}
+      WHATSAPP_API_KEY: ${WAHA_API_KEY}
+      WAHA_DASHBOARD_ENABLED: "true"
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      WHATSAPP_SWAGGER_USERNAME: ${WAHA_DASHBOARD_USERNAME}
+      WHATSAPP_SWAGGER_PASSWORD: ${WAHA_DASHBOARD_PASSWORD}
+      LOG_LEVEL: info
+    volumes:
+      - ./waha-sessions:/app/.sessions

@@ -1,0 +1,12 @@
+{
+  "businessName": "Studio Lash",
+  "services": [
+    { "name": "Volume Brasileiro", "duration": 120, "price": 180.00 },
+    { "name": "Volume Russo", "duration": 150, "price": 220.00 },
+    { "name": "Lifting de Cílios", "duration": 60, "price": 120.00 },
+    { "name": "Manutenção", "duration": 90, "price": 110.00 },
+    { "name": "Remoção", "duration": 30, "price": 40.00 }
+  ],
+  "paymentMethods": ["Dinheiro", "PIX", "Cartão de débito", "Cartão de crédito"],
+  "tone": "amigável"
+}
