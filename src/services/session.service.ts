@@ -1,4 +1,5 @@
 import { getDb } from '../db';
+import { businessConfig } from '../config/business';
 import type { Message, Session, AppointmentState } from '../types';
 import { log, maskPhone } from '../utils/logger';
 
@@ -60,7 +61,9 @@ export async function resetSession(phone: string): Promise<void> {
   if (session?.cart_json) {
     try {
       const existing = JSON.parse(session.cart_json) as AppointmentState;
-      if (existing.clientName) preserved = { clientName: existing.clientName, nameAsked: true };
+      if (existing.businessName === businessConfig.businessName && existing.clientName) {
+        preserved = { clientName: existing.clientName, nameAsked: true };
+      }
     } catch {
       // ignore parse error — reset cleanly
     }
@@ -68,7 +71,7 @@ export async function resetSession(phone: string): Promise<void> {
   await db('sessions')
     .where({ phone })
     .update({
-      cart_json: JSON.stringify({ ...preserved, confirmed: false }),
+      cart_json: JSON.stringify({ ...preserved, businessName: businessConfig.businessName, confirmed: false }),
       misunderstanding_count: 0,
       updated_at: new Date().toISOString(),
     });
@@ -105,7 +108,7 @@ export async function getHistory(phone: string): Promise<Message[]> {
 
 export async function saveAppointmentState(phone: string, state: AppointmentState): Promise<void> {
   const db = getDb();
-  const json = JSON.stringify(state);
+  const json = JSON.stringify({ ...state, businessName: businessConfig.businessName });
   await db('sessions')
     .where({ phone })
     .update({

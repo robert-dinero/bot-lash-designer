@@ -80,6 +80,7 @@ export interface AvailabilityBlock {
 // ─── Appointment state machine (session.cart_json serialization) ──────────────
 
 export interface AppointmentState {
+  businessName?: string;               // guards against reused sessions from another bot/business
   service?: string;                    // legado — mantido para fallback gracioso durante deploy
   serviceId?: number;                  // preferido: ID numérico da tabela services (D-03)
   clientName?: string;                 // Client name collected before confirmation
@@ -94,7 +95,8 @@ export interface AppointmentState {
 
 export interface BusinessConfig {
   businessName: string;
-  services?: Array<{ name: string; durationMinutes: number; price_cents: number }>;
+  services?: Array<{ name: string; duration: number; price: number }>;
+  paymentMethods?: string[];
   tone?: string;
 }
 

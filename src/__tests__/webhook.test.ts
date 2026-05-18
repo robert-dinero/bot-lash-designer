@@ -227,7 +227,7 @@ describe('Webhook Scheduling Integration Tests', () => {
     await db('users').insert({ phone: '5511999999999', created_at: new Date().toISOString() }).onConflict('phone').ignore();
     await db('sessions').insert({
       phone: '5511999999999',
-      cart_json: JSON.stringify({ clientName: 'TestClient', nameAsked: true, confirmed: false }),
+      cart_json: JSON.stringify({ businessName: 'Studio Lash', clientName: 'TestClient', nameAsked: true, confirmed: false }),
       misunderstanding_count: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -276,7 +276,7 @@ describe('Webhook Scheduling Integration Tests', () => {
     await db('users').insert({ phone, created_at: new Date().toISOString() }).onConflict('phone').ignore();
     await db('sessions').insert({
       phone,
-      cart_json: JSON.stringify({ clientName: 'TestClient', nameAsked: true, confirmed: false }),
+      cart_json: JSON.stringify({ businessName: 'Studio Lash', clientName: 'TestClient', nameAsked: true, confirmed: false }),
       misunderstanding_count: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -378,7 +378,7 @@ describe('Webhook Scheduling Integration Tests', () => {
     await db('users').insert({ phone, created_at: new Date().toISOString() }).onConflict('phone').ignore();
     await db('sessions').insert({
       phone,
-      cart_json: JSON.stringify({ clientName: 'TestClient', nameAsked: true, confirmed: false }),
+      cart_json: JSON.stringify({ businessName: 'Studio Lash', clientName: 'TestClient', nameAsked: true, confirmed: false }),
       misunderstanding_count: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

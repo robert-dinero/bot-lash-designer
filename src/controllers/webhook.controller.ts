@@ -225,16 +225,17 @@ function noSlotsFallbackReply(state: AppointmentState, services: ServiceRecord[]
   if (!state.service && !state.serviceId) {
     const menu = services.length
       ? services.map(s => `${s.name}`).join('\n')
-      : 'Volume Brasileiro\nVolume Russo\nLifting de Cílios\nManutenção\nRemoção';
+      : businessConfig.services?.map(s => s.name).join('\n')
+        ?? 'Volume Brasileiro\nVolume Russo\nLifting de Cílios\nManutenção\nRemoção';
     return `Sem problemas! Qual serviço você quer?\n\n${menu}`;
   }
   return 'Sem problemas! Para qual dia você quer marcar?';
 }
 
 function serviceMenu(services: ServiceRecord[]): string {
-  return services.length
-    ? services.map(s => s.name).join('\n')
-    : 'Volume Brasileiro\nVolume Russo\nLifting de Cílios\nManutenção\nRemoção';
+  if (services.length) return services.map(s => s.name).join('\n');
+  return businessConfig.services?.map(s => s.name).join('\n')
+    ?? 'Volume Brasileiro\nVolume Russo\nLifting de Cílios\nManutenção\nRemoção';
 }
 
 function normalizeText(text: string): string {
@@ -347,6 +348,12 @@ async function processMessage(data: WahaPayload): Promise<void> {
     // Compute once — reuse throughout processMessage (D-06)
     const masked = maskPhone(phone);
     const step = deriveStep(state);
+
+    if (state.businessName !== businessConfig.businessName) {
+      state = { businessName: businessConfig.businessName, confirmed: false };
+      await saveAppointmentState(phone, state);
+      log.info(masked, step, 'Session business changed or missing; cleared stale client identity');
+    }
 
     // If session still has confirmed=true (shouldn't happen after fix, but guard anyway)
     if (state.confirmed) {

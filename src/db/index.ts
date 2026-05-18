@@ -2,9 +2,29 @@ import knex, { type Knex } from 'knex';
 import * as fs from 'fs';
 import * as path from 'path';
 import { env } from '../config/env';
+import { businessConfig } from '../config/business';
 import { log } from '../utils/logger';
 
 let _db: Knex | null = null;
+
+const DEFAULT_SERVICES = [
+  { name: 'Volume Brasileiro', duration: 120, price: 180.00 },
+  { name: 'Volume Russo', duration: 150, price: 220.00 },
+  { name: 'Lifting de Cílios', duration: 60, price: 120.00 },
+  { name: 'Manutenção', duration: 90, price: 110.00 },
+  { name: 'Remoção', duration: 30, price: 40.00 },
+];
+
+const LEGACY_BARBER_SERVICES = new Set([
+  'corte',
+  'barba',
+  'corte + barba',
+  'pigmentação',
+  'pigmentacao',
+  'acabamento (pé)',
+  'acabamento (pe)',
+  'nevou',
+]);
 
 /** For testing only: replace the singleton DB instance. */
 export function _setDb(db: Knex | null): void {
@@ -55,6 +75,58 @@ async function createIfNotExists(
 ): Promise<void> {
   const exists = await db.schema.hasTable(table);
   if (!exists) await db.schema.createTable(table, builder);
+}
+
+function normalizeServiceName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+async function seedConfiguredServices(db: Knex): Promise<void> {
+  const configServices = businessConfig.services?.length ? businessConfig.services : DEFAULT_SERVICES;
+  const services = configServices.map((svc, index) => ({
+    id: index + 1,
+    name: svc.name,
+    duration_minutes: Number(svc.duration),
+    price_cents: Math.round(Number(svc.price) * 100),
+    active: 1,
+  }));
+
+  for (const service of services) {
+    const existing = await db('services').select('name').where({ id: service.id }).first();
+
+    if (!existing) {
+      await db('services').insert(service);
+      continue;
+    }
+
+    if (LEGACY_BARBER_SERVICES.has(normalizeServiceName(existing.name))) {
+      await db('services')
+        .where({ id: service.id })
+        .update({
+          name: service.name,
+          duration_minutes: service.duration_minutes,
+          price_cents: service.price_cents,
+          active: 1,
+        });
+    }
+  }
+
+  const configuredNames = new Set(services.map(service => normalizeServiceName(service.name)));
+  const activeServices = await db('services').select('id', 'name').where({ active: 1 });
+  const legacyIds = activeServices
+    .filter(service => {
+      const normalized = normalizeServiceName(service.name);
+      return LEGACY_BARBER_SERVICES.has(normalized) && !configuredNames.has(normalized);
+    })
+    .map(service => service.id);
+
+  if (legacyIds.length > 0) {
+    await db('services').whereIn('id', legacyIds).update({ active: 0 });
+    log.warn('-', 'STARTUP', `Deactivated legacy barber services: ${legacyIds.join(', ')}`);
+  }
 }
 
 export async function initSchema(): Promise<void> {
@@ -195,12 +267,9 @@ export async function initSchema(): Promise<void> {
   // Seed: maca id=1
   await db.raw(`INSERT OR IGNORE INTO chairs (id, name, active) VALUES (1, 'Maca 1', 1)`);
 
-  // Seed: services
-  await db.raw(`INSERT OR IGNORE INTO services (id, name, duration_minutes, price_cents, active) VALUES (1, 'Volume Brasileiro', 120, 18000, 1)`);
-  await db.raw(`INSERT OR IGNORE INTO services (id, name, duration_minutes, price_cents, active) VALUES (2, 'Volume Russo', 150, 22000, 1)`);
-  await db.raw(`INSERT OR IGNORE INTO services (id, name, duration_minutes, price_cents, active) VALUES (3, 'Lifting de Cílios', 60, 12000, 1)`);
-  await db.raw(`INSERT OR IGNORE INTO services (id, name, duration_minutes, price_cents, active) VALUES (4, 'Manutenção', 90, 11000, 1)`);
-  await db.raw(`INSERT OR IGNORE INTO services (id, name, duration_minutes, price_cents, active) VALUES (5, 'Remoção', 30, 4000, 1)`);
+  // Seed/sync services from config.json. This updates the default IDs so a
+  // copied barber database cannot keep showing old services in the lash bot.
+  await seedConfiguredServices(db);
 
   // Seed: working_hours for chair_id=1 (Sunday=0 closed, Mon-Sat open 09:00-19:00)
   await db.raw(`INSERT OR IGNORE INTO working_hours (chair_id, day_of_week, open_time, close_time, is_closed) VALUES (1, 0, '00:00', '00:00', 1)`);
