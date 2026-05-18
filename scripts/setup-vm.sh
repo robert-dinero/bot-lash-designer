@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # setup-vm.sh — run ONCE as root (or with sudo) on a fresh Ubuntu 22.04 VM
 # Usage: sudo bash scripts/setup-vm.sh <your-domain.com> <deploy-user>
+#
+# ATENÇÃO: se o bot-lash-designer for rodar na MESMA VM do bot-barbeiro
+# (VM já provisionada), NÃO rode este script — ele criaria um site nginx
+# 'bot' na porta 443 que conflita com o setup existente. Em vez disso,
+# instale o arquivo nginx-lash-designer.conf (já escuta na porta 8444).
 set -euo pipefail
 
 DOMAIN="${1:?Usage: $0 <domain> <deploy-user>}"
@@ -132,7 +137,7 @@ server {
         allow 127.0.0.1;
         deny all;
         limit_req zone=webhook burst=10 nodelay;
-        proxy_pass         http://127.0.0.1:3000;
+        proxy_pass         http://127.0.0.1:3003;
         proxy_http_version 1.1;
         proxy_set_header   Host              \$host;
         proxy_set_header   X-Real-IP         \$remote_addr;
@@ -144,7 +149,7 @@ server {
     # Admin dashboard
     location /admin {
         limit_req zone=admin burst=20 nodelay;
-        proxy_pass         http://127.0.0.1:3000;
+        proxy_pass         http://127.0.0.1:3003;
         proxy_http_version 1.1;
         proxy_set_header   Host              \$host;
         proxy_set_header   X-Real-IP         \$remote_addr;
@@ -156,7 +161,7 @@ server {
     # Health check + static
     location / {
         limit_req zone=general burst=30 nodelay;
-        proxy_pass         http://127.0.0.1:3000;
+        proxy_pass         http://127.0.0.1:3003;
         proxy_http_version 1.1;
         proxy_set_header   Host              \$host;
         proxy_set_header   X-Real-IP         \$remote_addr;

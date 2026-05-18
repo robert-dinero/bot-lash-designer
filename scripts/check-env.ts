@@ -36,7 +36,7 @@ const checks: Check[] = [
     label: 'Porta do servidor',
     required: false,
     valid: (value) => value === undefined || /^\d+$/.test(value),
-    hint: 'Use um numero, ex: PORT=3000',
+    hint: 'Use um numero, ex: PORT=3003',
   },
   {
     key: 'OPENAI_API_KEY',
@@ -50,14 +50,14 @@ const checks: Check[] = [
     label: 'URL do WAHA',
     required: true,
     valid: (value) => !!value && /^https?:\/\/.+/.test(value),
-    hint: 'Use algo como WAHA_BASE_URL=http://localhost:3001',
+    hint: 'Use algo como WAHA_BASE_URL=http://localhost:3011',
   },
   {
     key: 'WAHA_WEBHOOK_URL',
     label: 'URL do webhook chamada pelo WAHA',
     required: false,
     valid: (value) => value === undefined || value.trim() === '' || /^https?:\/\/.+\/webhook\/waha$/.test(value),
-    hint: 'Local: http://host.docker.internal:3000/webhook/waha | Producao: http://host.docker.internal:3002/webhook/waha',
+    hint: 'Use http://host.docker.internal:3003/webhook/waha',
   },
   {
     key: 'WAHA_API_KEY',

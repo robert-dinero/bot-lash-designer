@@ -1,4 +1,4 @@
-# Bot Studio Lash — Agendamento via WhatsApp
+﻿# Bot Studio Lash — Agendamento via WhatsApp
 
 Bot de WhatsApp com IA para agendamento de horários em estúdios de lash designer (extensão de cílios). O cliente conversa naturalmente em português e agenda, cancela ou remarca — tudo pelo WhatsApp, em menos de 2 minutos.
 
@@ -42,12 +42,12 @@ cp .env.example .env
 Edite `.env` com seus valores:
 
 ```env
-PORT=3000
+PORT=3003
 
 OPENAI_API_KEY=sk-...
 
-WAHA_BASE_URL=http://localhost:3001
-WAHA_WEBHOOK_URL=http://host.docker.internal:3000/webhook/waha
+WAHA_BASE_URL=http://localhost:3011
+WAHA_WEBHOOK_URL=http://host.docker.internal:3003/webhook/waha
 WAHA_API_KEY=sua-chave-waha
 WAHA_DASHBOARD_USERNAME=admin
 WAHA_DASHBOARD_PASSWORD=sua-senha-dashboard
@@ -88,24 +88,24 @@ npm run check:env:prod
 docker compose up -d
 ```
 
-Acesse `http://localhost:3001`, vá em **Sessions → default → Start** e escaneie o QR code com o WhatsApp do estúdio.
+Acesse `http://localhost:3011`, vá em **Sessions → default → Start** e escaneie o QR code com o WhatsApp do estúdio.
 
 ### 4. Configurar o webhook no WAHA
 
 O `docker-compose.yml` ja usa `WAHA_WEBHOOK_URL`. No ambiente local, mantenha:
 
 ```env
-PORT=3000
-WAHA_WEBHOOK_URL=http://host.docker.internal:3000/webhook/waha
+PORT=3003
+WAHA_WEBHOOK_URL=http://host.docker.internal:3003/webhook/waha
 ```
 
 Se precisar reconfigurar manualmente a sessao no WAHA:
 
 ```bash
-curl -X PUT http://localhost:3001/api/sessions/default \
+curl -X PUT http://localhost:3011/api/sessions/default \
   -H "X-Api-Key: sua-chave-waha" \
   -H "Content-Type: application/json" \
-  -d '{"config":{"webhooks":[{"url":"http://host.docker.internal:3000/webhook/waha","events":["message"]}]}}'
+  -d '{"config":{"webhooks":[{"url":"http://host.docker.internal:3003/webhook/waha","events":["message"]}]}}'
 ```
 
 ### 5. Iniciar o bot
@@ -122,6 +122,12 @@ npm run build && npm start
 
 ## Deploy em produção (Azure VM / Ubuntu)
 
+> **Coexistência com o bot-barbeiro:** este bot roda na mesma VM, mas isolado —
+> pasta `~/bot-lash-designer`, processo PM2 `bot-lash-designer`, Express na porta
+> **3003**, WAHA na **3011** e nginx na **8444**. Não conflita com o bot-barbeiro
+> (3002 / 3001 / 8443). Use `deploy.ps1` da sua máquina — ele já aponta para os
+> identificadores corretos.
+
 ### Primeira vez — setup da VM
 
 ```bash
@@ -129,7 +135,7 @@ sudo bash scripts/setup-vm.sh seu-dominio.com nome-usuario
 ```
 
 O script configura automaticamente:
-- ufw (firewall) — porta 22, 80, 443 abertas; 3000 e 3001 apenas internos
+- ufw (firewall) — porta 22, 80, 443 abertas; 3003 e 3011 apenas internos
 - SSH hardening — sem senha, apenas chave, máximo 3 tentativas
 - fail2ban — proteção contra brute-force
 - Docker
@@ -146,7 +152,7 @@ git commit -m "descrição da mudança"
 git push
 
 # No servidor — aplica a mudança
-cd ~/bot && git pull && npm run build && pm2 restart bot --update-env
+cd ~/bot-lash-designer && git pull && npm run build && pm2 restart bot-lash-designer --update-env
 ```
 
 ### Configurar o webhook no WAHA (produção)
@@ -154,9 +160,9 @@ cd ~/bot && git pull && npm run build && pm2 restart bot --update-env
 No servidor, deixe o `.env` de producao coerente com a porta do PM2:
 
 ```env
-PORT=3002
-WAHA_BASE_URL=http://localhost:3001
-WAHA_WEBHOOK_URL=http://host.docker.internal:3002/webhook/waha
+PORT=3003
+WAHA_BASE_URL=http://localhost:3011
+WAHA_WEBHOOK_URL=http://host.docker.internal:3003/webhook/waha
 ```
 
 O `docker-compose.yml` inclui `host.docker.internal:host-gateway`, entao esse nome tambem funciona no Linux. Depois de alterar `.env`, recrie o container do WAHA para ele reler a variavel:
@@ -169,7 +175,7 @@ docker compose up -d
 Se precisar reconfigurar manualmente a sessao no WAHA, rode uma vez após o deploy inicial:
 
 ```bash
-curl -X PUT http://localhost:3001/api/sessions/default \
+curl -X PUT http://localhost:3011/api/sessions/default \
   -H "X-Api-Key: $WAHA_API_KEY" \
   -H "Content-Type: application/json" \
   -d "{\"config\":{\"webhooks\":[{\"url\":\"$WAHA_WEBHOOK_URL\",\"events\":[\"message\"]}]}}"
@@ -180,10 +186,10 @@ curl -X PUT http://localhost:3001/api/sessions/default \
 Configure o cron para backup diário às 3h:
 
 ```bash
-(crontab -l 2>/dev/null; echo "0 3 * * * bash ~/bot/scripts/backup.sh") | crontab -
+(crontab -l 2>/dev/null; echo "0 3 * * * bash ~/bot-lash-designer/scripts/backup.sh") | crontab -
 ```
 
-Mantém os últimos 7 dias em `~/bot/backups/`.
+Mantém os últimos 7 dias em `~/bot-lash-designer/backups/`.
 
 ---
 
@@ -208,12 +214,12 @@ Mantém os últimos 7 dias em `~/bot/backups/`.
 
 ```bash
 # Primeira mensagem
-curl -s -X POST http://localhost:3000/webhook/waha \
+curl -s -X POST http://localhost:3003/webhook/waha \
   -H "Content-Type: application/json" \
   -d '{"event":"message","payload":{"id":"msg-001","from":"5521999999999@c.us","fromMe":false,"body":"oi","type":"chat"}}'
 
 # Escolher serviço
-curl -s -X POST http://localhost:3000/webhook/waha \
+curl -s -X POST http://localhost:3003/webhook/waha \
   -H "Content-Type: application/json" \
   -d '{"event":"message","payload":{"id":"msg-002","from":"5521999999999@c.us","fromMe":false,"body":"volume russo","type":"chat"}}'
 ```
@@ -347,10 +353,10 @@ docker-compose.yml            # WAHA
 
 | Variável | Obrigatório | Padrão | Descrição |
 |----------|:-----------:|--------|-----------|
-| `PORT` | não | `3000` | Porta do servidor Express |
+| `PORT` | não | `3003` | Porta do servidor Express |
 | `OPENAI_API_KEY` | **sim** | — | Chave da API OpenAI |
 | `WAHA_BASE_URL` | **sim** | — | URL do WAHA |
-| `WAHA_WEBHOOK_URL` | não | `http://host.docker.internal:3000/webhook/waha` | URL que o WAHA chama para entregar mensagens ao bot |
+| `WAHA_WEBHOOK_URL` | não | `http://host.docker.internal:3003/webhook/waha` | URL que o WAHA chama para entregar mensagens ao bot |
 | `WAHA_API_KEY` | **sim** | — | API key do WAHA |
 | `WAHA_DASHBOARD_USERNAME` | não | — | Usuário do dashboard WAHA |
 | `WAHA_DASHBOARD_PASSWORD` | não | — | Senha do dashboard WAHA |

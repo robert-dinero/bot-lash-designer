@@ -1,8 +1,11 @@
 # deploy.ps1 - valida local, exige git limpo, faz push e reinicia o servidor
 #
-# ATENÇÃO: revise SSH_HOST e o git remote antes do primeiro deploy.
-# Este projeto foi copiado do bot-barbeiro — use um SERVIDOR e REPO
-# SEPARADOS, ou o deploy sobrescreverá o bot da barbearia em produção.
+# ANTES DO PRIMEIRO DEPLOY:
+#  1. Crie um repositório git REMOTO próprio (separado do bot-barbeiro) e rode:
+#       git remote add origin <url-do-repo-lash>
+#       git push -u origin main
+#  2. Roda na MESMA VM do bot-barbeiro, mas isolado: pasta, PM2 e portas
+#     próprios (Express 3003, WAHA 3011, nginx 8444). Não sobrescreve o barbeiro.
 
 $KEY = "D:\Downloads\myVm_key.pem"
 $SSH_USER = "jota_azure"
